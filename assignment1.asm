@@ -1,5 +1,5 @@
 section .data
-	msg db "helloworld",0xA
+	msg db "enter 5 64 bit numbers",0xA
 	len equ $-msg
 section .bss
 	var resb 85
@@ -13,6 +13,7 @@ section .text
 		syscall
 	%endmacro
 _start:
+	func 1,1,msg,len
 	mov r8,5
 	mov rsi,var
 loop_start:
