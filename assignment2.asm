@@ -20,8 +20,8 @@ section .bss
 section .text
     global _start
     _start:
-        func 01, 1, ipmsg, ipmsglen
-        func 00, 0, str1, 100
+        func 1, 1, ipmsg, ipmsglen
+        func 0, 0, str1, 100
         mov rbx, rax
         mov byte[ctr], 16
         mov rbp, result
@@ -41,8 +41,8 @@ section .text
                 dec byte[ctr]
                 jnz back
 
-        func 01, 1, opmsg, opmsglen
-        func 01, 1, result, 16
+        func 1, 1, opmsg, opmsglen
+        func 1, 1, result, 16
 
         mov rax, 60
         mov rdi, 0
