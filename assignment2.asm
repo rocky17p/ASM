@@ -38,13 +38,13 @@ _start:
         mov al, bl               ; Move the lower byte of rbx to al
         AND al, 0Fh              ; Mask the lower 4 bits to get a digit (0-15)
         cmp al, 09h              ; Check if it's greater than 9
-        jg add_37                ; If greater than 9, add 37h to convert to 'A'-'F'
+        jbe add_30              
 
-        add al, '0'              ; Else add ASCII '0' (convert to '0'-'9')
+        add al,07h            
         jmp skip
 
-    add_37:
-        add al, 37h              ; If greater than 9, add 37h to convert to 'A'-'F'
+    add_30:
+        add al, 30h         
 
     skip:
         mov [rbp], al            ; Store the result in the result buffer
