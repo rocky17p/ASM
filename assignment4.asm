@@ -25,7 +25,7 @@ section .data
     remmsg db 10, 13, "Remainder is: "
     remmsglen equ $-remmsg
 
-    array dq 6H, 2H  ; Example numbers: 6 and 2 
+    array dq 0000000000000006H ,  0000000000000002H  ; Example numbers: 6 and 2 
 
 section .bss
     c resb 2
