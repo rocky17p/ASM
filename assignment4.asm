@@ -1,32 +1,35 @@
 section .data
-menu db 10, 13, "Enter the choice",
-    db 10, 13, "Choice 1: Addition",
-    db 10, 13, "Choice 2: Subtraction",
-    db 10, 13, "Choice 3: Multiplication",
-    db 10, 13, "Choice 4: Division",
-    db 10, 13, "Choice 5: Exit"
-menulen equ $-menu
+    menu db 10, 13, "Enter the choice",
+        db 10, 13, "Choice 1: Addition",
+        db 10, 13, "Choice 2: Subtraction",
+        db 10, 13, "Choice 3: Multiplication",
+        db 10, 13, "Choice 4: Division",
+        db 10, 13, "Choice 5: Exit"
+    menulen equ $-menu
 
-choice db 10, 13, "Enter Choice: "
-choicelen equ $-choice
+    choice db 10, 13, "Enter Choice: "
+    choicelen equ $-choice
 
-addmsg db 10, 13, "Result of Addition is: "
-addmsglen equ $-addmsg
+    addmsg db 10, 13, "Result of Addition is: "
+    addmsglen equ $-addmsg
 
-submsg db 10, 13, "Result of Subtraction is: "
-submsglen equ $-submsg
+    submsg db 10, 13, "Result of Subtraction is: "
+    submsglen equ $-submsg
 
-mulmsg db 10, 13, "Result of Multiplication is: "
-mulmsglen equ $-mulmsg
+    mulmsg db 10, 13, "Result of Multiplication is: "
+    mulmsglen equ $-mulmsg
 
-divmsg db 10, 13, "Result of Division is (Quotient): "
-divmsglen equ $-divmsg  ; Updated message
+    divmsg db 10, 13, "Result of Division is (Quotient): "
+    divmsglen equ $-divmsg
 
-array dq 6, 2  ; Example numbers: 6 and 2
+    remmsg db 10, 13, "Remainder is: "
+    remmsglen equ $-remmsg
+
+    array dq 6H, 2H  ; Example numbers: 6 and 2 
 
 section .bss
-c resb 2
-num resb 16
+    c resb 2
+    num resb 16
 
 %macro rw 3
     mov rax, %1
@@ -107,20 +110,26 @@ multiplication:
     ret
 
 division:
-    push rdx                ; Save RDX before syscall
     rw 1, divmsg, divmsglen
-    pop rdx                 ; Restore RDX
 
     mov rsi, array
-    mov rax, [rsi]          ; Dividend = 6
-    mov rbx, [rsi+8]        ; Divisor = 2
-    xor rdx, rdx            ; Clear RDX for division
-    div rbx                 ; RAX=3 (quotient), RDX=0 (remainder)
+    mov rax, [rsi]          ; Load dividend = 6
+    xor rdx, rdx            ; Clear RDX before division
+    div qword [rsi+8]       ; RAX = Quotient, RDX = Remainder
 
-    ; Display quotient only
-    mov rbx, rax
-    call hexToAscii
-    rw 1, num, 16
+    push rdx                ; Save remainder on stack
+
+    ; Print Quotient
+    mov rbx, rax            ; Store quotient in RBX for conversion
+    call hexToAscii         ; Convert to ASCII
+    rw 1, num, 16           ; Print quotient
+
+    ; Print Remainder
+    rw 1, remmsg, remmsglen
+    pop rbx                 ; Restore remainder from stack
+    call hexToAscii         ; Convert remainder to ASCII
+    rw 1, num, 16           ; Print remainder
+
     ret
 
 hexToAscii:
