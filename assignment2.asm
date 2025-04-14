@@ -33,7 +33,7 @@ back:
     AND al, 0Fh
     cmp al, 09h
     jbe add_30
-    add al,07h
+    add al,37h
     jmp skip
 
 add_30:
