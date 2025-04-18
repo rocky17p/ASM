@@ -1,182 +1,136 @@
+%macro m 3
+    mov rax, %1
+    mov rdi, %1
+    mov rsi, %2
+    mov rdx, %3
+    syscall
+%endmacro
+
 section .data
-    prompt_choice db "Choose (1=HEX to BCD, 2=BCD to HEX, 3=EXIT): ", 0
-    prompt_hex db "Enter 4-digit Hex (0x): ", 0
-    prompt_bcd db "Enter 5-digit BCD: ", 0
-    invalid_msg db "Invalid input!", 0xA, 0
-    hex_result db "BCD result: ", 0
-    bcd_result db "Hex result: 0x", 0
-    newline db 0xA, 0
+    msg1 db "ENTER THE NUMBER: "
+    l1 equ $ - msg1
+    menu db 10, 13, "ENTER 1 FOR BCD TO HEX"
+        db 10, 13, "ENTER 2 FOR HEX TO BCD"
+        db 10, 13, "ENTER 3 TO EXIT"
+    l equ $ - menu
 
 section .bss
+    input resb 10
     choice resb 2
-    input resb 6
-    output resb 6
+    sum resq 1
+    sum1 resq 1
+    result1 resb 16
+    multi resq 2
 
 section .text
     global _start
 
 _start:
-    call show_menu
-    jmp _start
+    lp1:
+        m 1, menu, l
+        m 0, choice, 2
+        cmp byte [choice], '1'
+        je bcdtohex
+        cmp byte [choice], '2'
+        je hextobcd
+        cmp byte [choice], '3'
+        je exit
 
-show_menu:
-    ; Display menu
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, prompt_choice
-    mov edx, 43
-    int 0x80
+bcdtohex:
+    m 1, msg1, l1
+    m 0, input, 6
+    mov qword [multi], 10000
+    mov qword [sum], 0
+    mov rsi, input
+    mov rcx, 5
 
-    ; Get choice
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, choice
-    mov edx, 2
-    int 0x80
+lp:
+    mov rax, 0
+    mov al, byte [rsi]
+    sub al, '0'
+    mov rbx, qword [multi]
+    mul rbx
+    add qword [sum], rax
+    mov rax, qword [multi]
+    mov rbx, 10
+    div rbx
+    mov qword [multi], rax
+    inc rsi
+    dec rcx
+    jnz lp
 
-    ; Process choice
-    cmp byte [choice], '1'
-    je do_hex_to_bcd
-    cmp byte [choice], '2'
-    je do_bcd_to_hex
-    cmp byte [choice], '3'
-    je exit
-    call show_error
-    ret
+    mov rax, qword [sum]
+    call pro
+    jmp lp1
 
-do_hex_to_bcd:
-    ; Get hex input
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, prompt_hex
-    mov edx, 23
-    int 0x80
+hextobcd:
+    m 1, msg1, l1
+    m 0, input, 5
+    mov rsi, input
+    mov qword [sum1], 0
+    mov rcx, 4
 
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, input
-    mov edx, 5
-    int 0x80
+hex:
+    mov al, byte [rsi]
+    cmp al, '9'
+    jbe digit
+    sub al, 'A' - 10
+    jmp add
 
-    ; Convert hex to binary
-    xor eax, eax
-    mov ecx, 4
-    mov esi, input
-hex_loop:
-    shl eax, 4
-    mov bl, [esi]
-    cmp bl, '9'
-    jbe .digit
-    sub bl, 7
-.digit:
-    sub bl, '0'
-    or al, bl
-    inc esi
-    loop hex_loop
+digit:
+    sub al, '0'
 
-    ; Convert to BCD
-    xor edx, edx
-    mov ebx, 10
-    mov ecx, 5
-    mov edi, output+4
-bcd_loop:
-    xor edx, edx
-    div ebx
+add:
+    shl qword [sum1], 4
+    add [sum1], al
+    inc rsi
+    dec rcx
+    jnz hex
+
+    mov rax, qword [sum1]
+    mov rbx, 10
+    mov rsi, result1 + 15
+
+bcd:
+    xor rdx, rdx
+    div rbx
     add dl, '0'
-    mov [edi], dl
-    dec edi
-    loop bcd_loop
+    mov [rsi], dl
+    dec rsi
+    cmp rax, 0
+    jne bcd
 
-    ; Show result
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, hex_result
-    mov edx, 12
-    int 0x80
-
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, output
-    mov edx, 5
-    int 0x80
-    call new_line
-    ret
-
-do_bcd_to_hex:
-    ; Get BCD input
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, prompt_bcd
-    mov edx, 19
-    int 0x80
-
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, input
-    mov edx, 6
-    int 0x80
-
-    ; Convert BCD to binary
-    xor eax, eax
-    mov ecx, 5
-    mov esi, input
-    mov ebx, 10
-num_loop:
-    imul eax, ebx
-    mov dl, [esi]
-    sub dl, '0'
-    add eax, edx
-    inc esi
-    loop num_loop
-
-    ; Convert to hex string
-    mov ecx, 4
-    mov edi, output+3
-hexstr_loop:
-    mov edx, eax
-    and edx, 0xF
-    cmp dl, 9
-    jbe .hexdigit
-    add dl, 7
-.hexdigit:
-    add dl, '0'
-    mov [edi], dl
-    shr eax, 4
-    dec edi
-    loop hexstr_loop
-
-    ; Show result
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, bcd_result
-    mov edx, 14
-    int 0x80
-
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, output
-    mov edx, 4
-    int 0x80
-    call new_line
-    ret
-
-show_error:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, invalid_msg
-    mov edx, 13
-    int 0x80
-    ret
-
-new_line:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, newline
-    mov edx, 1
-    int 0x80
-    ret
+    mov rsi, result1
+    m 1, rsi, 16
+    jmp lp1
 
 exit:
-    mov eax, 1
-    xor ebx, ebx
-    int 0x80
+    mov rax, 60
+    mov rdi, 0
+    syscall
+
+pro:
+    mov rdi, result1
+    mov rbx, rax
+    mov rcx, 16
+
+a:
+    rol rbx, 4
+    mov al, bl
+    and al, 0Fh
+    cmp al, 09h
+    jg b1
+    add al, 30h
+    jmp b2
+
+b1:
+    add al, 37h
+
+b2:
+    mov byte [rdi], al
+    inc rdi
+    dec rcx
+    jnz a
+
+    m 1, result1, 16
+    ret
