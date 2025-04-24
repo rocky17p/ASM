@@ -17,11 +17,11 @@ colon db ":"
 colonlen equ $-colon
 
 section .bss
-idt resb 01
-gdt resb 01
-ldt resb 01
-tr resb 01
-cr0_data resb 01
+idt resb 06
+gdt resb 06
+ldt resw 01
+tr resw 01
+cr0_data resd 01
 result resb 04
 
 ;macro to readwrite
@@ -43,74 +43,68 @@ syscall
 section .text
 global _start
 _start:
-smsw ebx       ; msw is machine state word
-mov [cr0_data],ebx
-bt ebx,0
-jc x1
-rw 01,rm,rmlen
-jmp exitt
-x1:rw 01,pm,pmlen
+	smsw ebx
+	mov [cr0_data],ebx
+	bt ebx,0
+	jc x1
+	rw 01,rm,rmlen
+	jmp exitt
+x1:	rw 01,pm,pmlen
 
-;contents of gdt
-rw 01,gdtc,gdtclen
-sgdt [gdt]
-mov bx,[gdt+4]
-call display
-mov bx,[gdt+2]
-call display
-rw 01,colon,colonlen
-mov bx,[gdt]
-call display
-rw 01,newline,newlen
+	;contents of gdt
+	rw 01,gdtc,gdtclen
+	sgdt [gdt]
+	mov bx,[gdt+4]
+	call display
+	mov bx,[gdt+2]
+	call display
+	rw 01,colon,colonlen
+	mov bx,[gdt]
+	call display
+	rw 01,newline,newlen
 
-;contents of idt
-rw 01,idtc,idtclen
-sidt [idt]
-mov bx,[idt+4]
-call display
-mov bx,[idt+2]
-call display
-rw 01,colon,colonlen
-mov bx,[idt]
-call display
-rw 01,newline,newlen
+	;contents of idt
+	rw 01,idtc,idtclen
+	sidt [idt]
+	mov bx,[idt+4]
+	call display
+	mov bx,[idt+2]
+	call display
+	rw 01,colon,colonlen
+	mov bx,[idt]
+	call display
+	rw 01,newline,newlen
 
-;contents of ldt
-rw 01,ldtc,ldtclen
-sgdt [ldt]
-mov bx,[ldt+4]
-call display
-mov bx,[ldt+2]
-call display
-rw 01,colon,colonlen
-mov bx,[ldt]
-call display
-rw 01,newline,newlen
+	;contents of ldt
+	rw 01,ldtc,ldtclen
+	sldt [ldt]
+	mov bx,[ldt]
+	call display
+	rw 01,newline,newlen
 
-;contents of tr
-rw 01,trc,trclen
-str [tr]
-mov bx,[tr]
-call display
-rw 01,newline,newlen
+	;contents of tr
+	rw 01,trc,trclen
+	str [tr]
+	mov bx,[tr]
+	call display
+	rw 01,newline,newlen
 
-exitt:exit
+exitt:	exit
 
-
-display:mov bx,ax
-	mov cx,04
-	mov rdi,result
-	loop1:rol bx,04H
+display:	mov bx,ax
+		mov cx,04
+		mov rdi,result
+	loop1:	rol bx,04H
 		mov al,bl
 		and al,0FH
 		cmp al,09H
 		jg b1
 		add al,30H
 		jmp b2
-	b1:add al,37H
-	b2:mov byte[rdi],al
+	b1:	add al,37H
+	b2:	mov byte[rdi],al
 		inc rdi
 		dec cx
 		jnz loop1
-	rw 01,result,04
-	ret
+		rw 01,result,04
+		ret
