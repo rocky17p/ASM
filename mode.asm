@@ -21,7 +21,6 @@ idt resb 06
 gdt resb 06
 ldt resw 01
 tr resw 01
-cr0_data resd 01
 result resb 04
 
 ;macro to readwrite
@@ -44,7 +43,6 @@ section .text
 global _start
 _start:
 	smsw ebx
-	mov [cr0_data],ebx
 	bt ebx,0
 	jc x1
 	rw 01,rm,rmlen
