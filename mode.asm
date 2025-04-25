@@ -91,8 +91,7 @@ x1:	rw 01,pm,pmlen
 
 exitt:	exit
 
-display:	mov bx,ax
-		mov cx,04
+display:	mov cx,04
 		mov rdi,result
 	loop1:	rol bx,04H
 		mov al,bl
