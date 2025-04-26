@@ -1,8 +1,10 @@
 section .data
-    ipmsg db "Enter a string", 0xa
-    ipmsglen equ $ - ipmsg
-    opmsg db "The length of the string is: ", 0xa
+    ipmsg db "Enter a string"
+    ipmsglen equ $ -ipmsg
+    opmsg db "The length of the string is: "
     opmsglen equ $ - opmsg
+    newline db 10
+    newlinelen equ $-newline
 
 section .bss
     str1 resw 100
@@ -11,42 +13,43 @@ section .bss
 section .text
     global _start
 
-%macro func 4
+%macro rw 3
     mov rax, %1
-    mov rdi, %2
-    mov rsi, %3
-    mov rdx, %4
+    mov rdi, %1
+    mov rsi, %2
+    mov rdx, %3
     syscall
 %endmacro
 
 _start:
-    func 1, 1, ipmsg, ipmsglen
-    func 0, 0, str1, 100
-
+    rw 1, ipmsg, ipmsglen
+    rw 1,newline,newlinelen
+    rw 0, str1, 100
     mov rbx, rax
     mov rcx, 16
-    mov rbp, result
+    mov rdi, result
 
-back:
-    rol rbx, 04h
+loop1:
+    rol rbx, 04H
     mov al, bl
-    AND al, 0Fh
-    cmp al, 09h
-    jbe add_30
-    add al,37h
-    jmp skip
+    AND al, 0FH
+    cmp al, 09H
+    jg b1
+    add al,30H
+    jmp b2
 
-add_30:
-    add al, 30h
+b1:
+    add al, 37H
 
-skip:
-    mov [rbp], al
-    inc rbp
+b2:
+    mov byte[rdi], al
+    inc rdi
     dec rcx
-    jnz back
+    jnz loop1
 
-    func 1, 1, opmsg, opmsglen
-    func 1, 1, result, 16
+    rw 1, opmsg, opmsglen
+    rw 1, result, 16
+    rw 1,newline,newlinelen
 
     mov rax, 60
     xor rdi, rdi
