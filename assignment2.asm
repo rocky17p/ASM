@@ -7,7 +7,7 @@ section .data
     newlinelen equ $-newline
 
 section .bss
-    str1 resw 100
+    str1 resb 100
     result resb 50
 
 section .text
@@ -52,5 +52,5 @@ b2:
     rw 1,newline,newlinelen
 
     mov rax, 60
-    xor rdi, rdi
+    mov rdi,0
     syscall
