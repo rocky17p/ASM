@@ -72,13 +72,13 @@ hextobcd:
 
 hex:
     mov al, byte [rsi]
-    cmp al, '9'
-    jbe digit
-    sub al, 'A' - 10
+    cmp al,39h
+    jg digit
+    sub al,30h
     jmp add
 
 digit:
-    sub al, '0'
+    sub al,37h
 
 add:
     mov rbx, [sum1]
