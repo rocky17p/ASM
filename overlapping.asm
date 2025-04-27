@@ -105,7 +105,7 @@ display_srcblock:
 
 loop1:
     mov bl, [rsi]         ; load one byte
-    rol rbx, 4            ; rotate left 4 bits to bring high nibble to low nibble
+    rol bl, 4            ; rotate left 4 bits to bring high nibble to low nibble
     mov al, bl
     and al, 0Fh
     cmp al, 9
