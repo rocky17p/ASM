@@ -81,12 +81,15 @@ digit:
     sub al, '0'
 
 add:
-    shl qword [sum1], 4
-    add [sum1], al
+    mov rbx, [sum1]
+    rol rbx, 4            ; instead of SHL, now ROL
+    mov [sum1], rbx       ; store rotated value
+    add [sum1], al        ; add the current digit value
     inc rsi
     dec rcx
     jnz hex
 
+    ; Now [sum1] has the converted number
     mov rax, qword [sum1]
     mov rbx, 10
     mov rsi, result1 + 15
@@ -103,6 +106,7 @@ bcd:
     mov rsi, result1
     m 1, rsi, 16
     jmp lp1
+
 
 exit:
     mov rax, 60
