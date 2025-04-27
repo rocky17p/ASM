@@ -82,7 +82,7 @@ display_destblock:
 
 loop1:
     mov bl, [rsi]
-    rol rbx, 4
+    rol bl, 4
     mov al, bl
     and al, 0Fh
     cmp al, 9
