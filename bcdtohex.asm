@@ -10,8 +10,8 @@ section .data
     msg1 db "ENTER THE NUMBER: "
     l1 equ $ - msg1
     menu db 10, 13, "ENTER 1 FOR BCD TO HEX"
-        db 10, 13, "ENTER 2 FOR HEX TO BCD"
-        db 10, 13, "ENTER 3 TO EXIT"
+         db 10, 13, "ENTER 2 FOR HEX TO BCD"
+         db 10, 13, "ENTER 3 TO EXIT"
     l equ $ - menu
 
 section .bss
@@ -26,15 +26,16 @@ section .text
     global _start
 
 _start:
-    lp1:
-        m 1, menu, l
-        m 0, choice, 2
-        cmp byte [choice], '1'
-        je bcdtohex
-        cmp byte [choice], '2'
-        je hextobcd
-        cmp byte [choice], '3'
-        je exit
+lp1:
+    m 1, menu, l
+    m 0, choice, 2
+    cmp byte [choice], '1'
+    je bcdtohex
+    cmp byte [choice], '2'
+    je hextobcd
+    cmp byte [choice], '3'
+    je exit
+    jmp lp1        ; in case invalid input
 
 bcdtohex:
     m 1, msg1, l1
@@ -66,47 +67,26 @@ lp:
 hextobcd:
     m 1, msg1, l1
     m 0, input, 5
-    mov rsi, input
-    mov qword [sum1], 0
-    mov rcx, 4
+    call accept_procedure
 
-hex:
-    mov al, byte [rsi]
-    cmp al,39h
-    jg digit
-    sub al,30h
-    jmp add
-
-digit:
-    sub al,37h
-
-add:
-    mov rbx, [sum1]
-    rol rbx, 4            ; instead of SHL, now ROL
-    mov [sum1], rbx       ; store rotated value
-    add [sum1], al        ; add the current digit value
-    inc rsi
-    dec rcx
-    jnz hex
-
-    ; Now [sum1] has the converted number
     mov rax, qword [sum1]
     mov rbx, 10
     mov rsi, result1 + 15
+    mov rcx, 0          ; count digits
 
 bcd:
     xor rdx, rdx
     div rbx
-    add dl,30h
+    add dl, 30h
     mov [rsi], dl
     dec rsi
+    inc rcx
     cmp rax, 0
     jne bcd
 
-    mov rsi, result1
-    m 1, rsi,16
+    inc rsi             ; point to first valid digit
+    m 1, rsi, rcx
     jmp lp1
-
 
 exit:
     mov rax, 60
@@ -137,4 +117,30 @@ b2:
     jnz a
 
     m 1, result1, 16
+    ret
+
+accept_procedure:
+    mov rsi, input
+    mov rcx, 4
+    xor rbx, rbx
+    xor rax, rax
+
+loop1:
+    rol rbx, 4              ; shift left 4 bits
+    mov al, byte [rsi]
+    cmp al, 39h
+    jg upper_case
+    sub al, 30h
+    jmp add_digit
+
+upper_case:
+    sub al,37h
+
+add_digit:
+    add bl, al
+    inc rsi
+    dec rcx
+    jnz loop1
+
+    mov [sum1], rbx
     ret
