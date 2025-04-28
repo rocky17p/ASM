@@ -97,14 +97,14 @@ add:
 bcd:
     xor rdx, rdx
     div rbx
-    add dl, '0'
+    add dl,30h
     mov [rsi], dl
     dec rsi
     cmp rax, 0
     jne bcd
 
     mov rsi, result1
-    m 1, rsi, 16
+    m 1, rsi,16
     jmp lp1
 
 
