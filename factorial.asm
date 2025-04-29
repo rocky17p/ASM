@@ -17,11 +17,11 @@ section .bss
     inputnum    resb 3
     char_ans    resb 16
 
-%macro screen_io 4
-    mov rax, %1
-    mov rdi, %2
-    mov rsi, %3
-    mov rdx, %4
+%macro rw 3
+    mov rax, %1       ; syscall number: 0 (read), 1 (write)
+    mov rdi, %1       ; file descriptor: 0 (stdin), 1 (stdout)
+    mov rsi, %2       ; buffer
+    mov rdx, %3       ; length
     syscall
 %endmacro
 
@@ -29,13 +29,13 @@ section .text
     global _start
 
 _start:
-    screen_io 1, 1, nummsg, nummsg_len
-    screen_io 0, 0, inputnum, 02
+    rw 1, nummsg, nummsg_len
+    rw 0, inputnum, 2
 
     call accept_proc
     mov [num1], bl
 
-    screen_io 1, 1, resmsg, resmsg_len
+    rw 1, resmsg, resmsg_len
 
     mov al, [num1]
     cmp al, 01h
@@ -49,7 +49,7 @@ _start:
     jmp exit
 
 end_fact:
-    screen_io 1, 1, z_factmsg, z_factmsg_len
+    rw 1, z_factmsg, z_factmsg_len
 
 exit:
     mov rax, 60
@@ -94,7 +94,7 @@ store_char:
     dec rcx
     jnz disp_loop
 
-    screen_io 1, 1, char_ans, 16
+    rw 1, char_ans, 16
     ret
 
 accept_proc:
