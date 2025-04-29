@@ -11,9 +11,7 @@ section .data
     z_factmsg_len equ $ - z_factmsg
 
 section .bss
-    result      resb 4
     num1        resb 1
-    num2        resb 1
     inputnum    resb 3
     char_ans    resb 16
 
