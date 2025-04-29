@@ -25,7 +25,7 @@ section .data
     remmsg db 10, 13, "Remainder is: "
     remmsglen equ $-remmsg
 
-    array dq 0000000000000006H ,  0000000000000002H  ; Example numbers: 6 and 2 
+    array dq 0000000000000006h, 0000000000000002h ; Example numbers: 6 and 2
 
 section .bss
     c resb 2
@@ -47,38 +47,43 @@ section .bss
 
 section .text
 global _start
+
 _start:
-    mainloop:
-        rw 1, menu, menulen
-        rw 1, choice, choicelen
-        rw 0, c, 2
+mainloop:
+    rw 1, menu, menulen
+    rw 1, choice, choicelen
+    rw 0, c, 2
 
-        cmp byte [c], '1'
-        je case1
-        cmp byte [c], '2'
-        je case2
-        cmp byte [c], '3'
-        je case3
-        cmp byte [c], '4'
-        je case4
-        cmp byte [c], '5'
-        je case5
-        jmp mainloop
+    cmp byte [c], '1'
+    je case1
+    cmp byte [c], '2'
+    je case2
+    cmp byte [c], '3'
+    je case3
+    cmp byte [c], '4'
+    je case4
+    cmp byte [c], '5'
+    je case5
+    jmp mainloop
 
-    case1:
-        call addition
-        exit
-    case2:
-        call subtraction
-        exit
-    case3:
-        call multiplication
-        exit
-    case4:
-        call division
-        exit
-    case5:
-        exit
+case1:
+    call addition
+    exit
+
+case2:
+    call subtraction
+    exit
+
+case3:
+    call multiplication
+    exit
+
+case4:
+    call division
+    exit
+
+case5:
+    exit
 
 addition:
     rw 1, addmsg, addmsglen
@@ -111,7 +116,6 @@ multiplication:
 
 division:
     rw 1, divmsg, divmsglen
-
     mov rsi, array
     mov rax, [rsi]          ; Load dividend = 6
     xor rdx, rdx            ; Clear RDX before division
@@ -120,32 +124,33 @@ division:
     push rdx                ; Save remainder on stack
 
     ; Print Quotient
-    mov rbx, rax            ; Store quotient in RBX for conversion
-    call hexToAscii         ; Convert to ASCII
-    rw 1, num, 16           ; Print quotient
+    mov rbx, rax
+    call hexToAscii
+    rw 1, num, 16
 
     ; Print Remainder
     rw 1, remmsg, remmsglen
-    pop rbx                 ; Restore remainder from stack
-    call hexToAscii         ; Convert remainder to ASCII
-    rw 1, num, 16           ; Print remainder
-
+    pop rbx
+    call hexToAscii
+    rw 1, num, 16
     ret
 
 hexToAscii:
     mov rcx, 16
     mov rdi, num
-    .loop:
-        rol rbx, 4
-        mov al, bl
-        and al, 0x0F
-        cmp al, 9
-        jle .digit
-        add al, 7
-    .digit:
-        add al, 0x30
-        mov [rdi], al
-        inc rdi
-        dec rcx
-        jnz .loop
+a:
+    rol rbx, 4
+    mov al, bl
+    and al, 0Fh
+    cmp al, 09h
+    jg b1
+    add al, 30h
+    jmp b2
+b1:
+    add al, 37h
+b2:
+    mov [rdi], al
+    inc rdi
+    dec rcx
+    jnz a
     ret
